@@ -3,7 +3,6 @@ name: CI/CD - Build and Deploy Analysis Service
 on:
   push:
     branches: [ main ]
-    # Ensure this is matching your directory structure correctly
     paths:
       - 'automation/**'
       - '.github/workflows/deploy-analysis.yml'
@@ -35,7 +34,6 @@ jobs:
 
       - name: Run Smoke Test
         run: |
-          # We need to run this from the automation/scripts directory
           cd automation/scripts
           python3 investigation_mode.py manual google.com
 
@@ -60,12 +58,9 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    # This ensures the deploy job only runs if test-and-build succeeds
     needs: test-and-build
+    environment: production
     steps:
       - name: Trigger Render Deployment
-        run: |
-          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
-yment
         run: |
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
