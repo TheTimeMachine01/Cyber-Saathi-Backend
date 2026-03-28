@@ -1,0 +1,22 @@
+name: Deploy Analysis Service to Render
+
+on:
+  push:
+    branches:
+      - main
+    # Only trigger if changes are in the automation folder
+    paths:
+      - 'automation/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Trigger Render Deployment
+        # You will need to add RENDER_DEPLOY_HOOK_URL as a secret in your GitHub repository
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"

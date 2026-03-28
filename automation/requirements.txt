@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-multipart
+httpx
+easyocr
+opencv-python-headless
+python-whois
+validators
+requests
+Pillow
+numpy
+# Add any other specific versions if needed from scripts/requirements.txt

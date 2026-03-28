@@ -1,0 +1,1 @@
+- Ask the police officer again enter the valid case number\n- Read the case number it should be a 14 digit number.\n- If the case number entered is valid -> Return It in precise json.\n\nExample of a precise json:\n{\n\t\"case_number\":\"the_number\"\n}\n\n- If the number officer enters is not valid -> return a precise NULL json.

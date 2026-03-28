@@ -1,0 +1,289 @@
+{
+  "info": {
+    "_postman_id": "cyber-saathi-api-v1",
+    "name": "Cyber-Saathi API",
+    "description": "REST API for the Cyber-Saathi incident reporting backend (Convex + Clerk Auth)\n\n**Setup:**\n1. Set `base_url` variable to your Convex site URL (e.g. `https://admired-zebra-60.eu-west-1.convex.site`)\n2. Get your Clerk JWT token by signing in to the Next.js app, opening DevTools → Application → Cookies, and copying the `__session` value (or use the Clerk `getToken()` method from the frontend). Set it as `auth_token`.\n3. Run requests in order: Health → List → Create → Get One → Update → Delete",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://admired-zebra-60.eu-west-1.convex.site",
+      "description": "Your Convex site URL (from .env.local → CONVEX_SITE_URL)"
+    },
+    {
+      "key": "auth_token",
+      "value": "PASTE_YOUR_CLERK_JWT_HERE",
+      "description": "Clerk JWT token — get this from the frontend after signing in"
+    },
+    {
+      "key": "incident_id",
+      "value": "",
+      "description": "Auto-populated after creating an incident via the POST request"
+    }
+  ],
+  "item": [
+    {
+      "name": "🟢 Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/health",
+          "host": ["{{base_url}}"],
+          "path": ["api", "health"]
+        },
+        "description": "Public endpoint. Returns service status and timestamp."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Status ok', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.status).to.eql('ok');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 List All Incidents",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/incidents",
+          "host": ["{{base_url}}"],
+          "path": ["api", "incidents"]
+        },
+        "description": "Public endpoint. Returns all incidents sorted by newest first."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Returns array', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.data).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "➕ Create Incident (Report Scam)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Fake UPI Payment Request\",\n  \"description\": \"Received a UPI payment request from an unknown number claiming to be from my bank, asking me to approve a ₹50,000 transaction.\",\n  \"category\": \"fraud\",\n  \"severity\": \"high\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/incidents",
+          "host": ["{{base_url}}"],
+          "path": ["api", "incidents"]
+        },
+        "description": "Auth required (Bearer token). Creates a new incident and returns its ID."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 201', () => pm.response.to.have.status(201));",
+              "pm.test('Has ID', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.id).to.be.a('string');",
+              "  pm.collectionVariables.set('incident_id', json.id);",
+              "  console.log('Saved incident_id:', json.id);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔍 Get Incident by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/incidents/{{incident_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "incidents", "{{incident_id}}"]
+        },
+        "description": "Public endpoint. Fetches a single incident by its Convex document ID.\n\n*Run 'Create Incident' first — the ID is automatically saved to `incident_id` variable.*"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has data', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.data).to.be.an('object');",
+              "  pm.expect(json.data.title).to.be.a('string');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "✏️ Update Incident (PATCH)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"investigating\",\n  \"severity\": \"critical\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/incidents/{{incident_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "incidents", "{{incident_id}}"]
+        },
+        "description": "Auth required. Owner-only. Updates status and/or severity of an incident.\n\nValid statuses: `pending`, `investigating`, `resolved`\nValid severities: `low`, `medium`, `high`, `critical`"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Success flag', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.success).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🚫 Create Incident (No Auth — should 401)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Test without auth\",\n  \"description\": \"This should fail with 401\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/incidents",
+          "host": ["{{base_url}}"],
+          "path": ["api", "incidents"]
+        },
+        "description": "Negative test — no auth token provided. Expects a 401 response."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 401', () => pm.response.to.have.status(401));",
+              "pm.test('Error message', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.success).to.be.false;",
+              "  pm.expect(json.error).to.be.a('string');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🗑️ Delete Incident",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/incidents/{{incident_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "incidents", "{{incident_id}}"]
+        },
+        "description": "Auth required. Owner-only. Permanently deletes the incident."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Deleted successfully', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.success).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}

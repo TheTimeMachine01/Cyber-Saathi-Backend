@@ -1,0 +1,23 @@
+# Node
+node_modules/
+.env
+.env.local
+.env.production
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+automation/temp_*
+
+# Convex
+.convex/
+_generated/
+
+# Automation
+automation/scripts/bin/
+automation/scripts/phoneinfoga*
+!automation/scripts/phoneinfoga.exe
