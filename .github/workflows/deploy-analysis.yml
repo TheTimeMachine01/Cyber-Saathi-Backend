@@ -3,13 +3,16 @@ name: CI/CD - Build and Deploy Analysis Service
 on:
   push:
     branches: [ main ]
+    # Ensure this is matching your directory structure correctly
     paths:
       - 'automation/**'
+      - '.github/workflows/deploy-analysis.yml'
   workflow_dispatch:
 
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
+    # Added outputs if needed, but for now we'll just use the successful completion
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -31,10 +34,10 @@ jobs:
           pip install pytest
 
       - name: Run Smoke Test
-        # Basic test to ensure investigation_mode.py can at least be imported/initialized
         run: |
+          # We need to run this from the automation/scripts directory
           cd automation/scripts
-          python3 investigation_mode.py manual google.com || echo "Test failed but continuing to check output"
+          python3 investigation_mode.py manual google.com
 
       # --- 2. DOCKER BUILD & PUSH PHASE ---
       - name: Login to Docker Hub
@@ -55,8 +58,11 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/cyber-saathi-analysis:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/cyber-saathi-analysis:${{ github.sha }}
 
-      # --- 3. DEPLOY PHASE ---
+  deploy:
+    runs-on: ubuntu-latest
+    # This ensures the deploy job only runs if test-and-build succeeds
+    needs: test-and-build
+    steps:
       - name: Trigger Render Deployment
-        if: success()
         run: |
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
