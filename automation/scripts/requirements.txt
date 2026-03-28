@@ -1,0 +1,8 @@
+# Install all dependencies with:
+# pip install -r requirements.txt
+
+easyocr
+opencv-python
+requests
+validators
+python-whois

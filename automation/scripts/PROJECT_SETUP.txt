@@ -1,0 +1,144 @@
+Cyber Investigation Toolkit - Setup Guide
+========================================
+
+1. Prerequisites
+----------------
+- Operating System: Windows or Linux
+- Python: 3.9+ recommended
+- Git (optional, for cloning from GitHub)
+
+2. Clone or Download the Repository
+-----------------------------------
+- Clone with Git:
+  git clone <REPO_URL>
+  cd ocr
+
+- Or download the ZIP from GitHub and extract it, then open a terminal in the extracted `ocr` folder.
+
+3. Create & Activate a Virtual Environment (Recommended)
+--------------------------------------------------------
+Windows (PowerShell):
+  python -m venv .venv
+  .venv\Scripts\Activate.ps1
+
+Linux/macOS (bash/zsh):
+  python3 -m venv .venv
+  source .venv/bin/activate
+
+4. Install Python Dependencies
+------------------------------
+Install all required libraries inside the virtual environment:
+
+  pip install --upgrade pip
+  pip install easyocr opencv-python requests validators python-whois
+
+You also need a working PhoneInfoga binary:
+- Download PhoneInfoga for your OS from the official repository.
+- Place the executable in the same folder as this project and name it `phoneinfoga` (Linux) or `phoneinfoga.exe` (Windows),
+  OR set the PHONEINFOGA_PATH environment variable to its full path.
+
+5. VirusTotal API Key Configuration
+-----------------------------------
+This project integrates with VirusTotal for domain/URL/APK analysis.
+
+Recommended (more secure):
+- Set the VT_API_KEY environment variable in your shell before running the tools.
+
+Windows (PowerShell example):
+  $env:VT_API_KEY = "YOUR_VIRUSTOTAL_API_KEY"
+
+Linux/macOS (bash example):
+  export VT_API_KEY="YOUR_VIRUSTOTAL_API_KEY"
+
+The script also contains a built-in fallback key constant (DEFAULT_VT_API_KEY) in `threat_analyzer.py`.
+For security on GitHub, you should replace this with your own key locally or remove it and rely on VT_API_KEY.
+
+6. Project Components
+---------------------
+- auto_ocr_api.py
+  Standalone OCR tool that reads an image and prints detected indicators as JSON.
+
+- ocr_pipeline.py
+  Full OCR + indicator extraction + automatic threat analysis pipeline.
+  Input: image file.
+  Output: JSON with extracted indicators and analysis results.
+
+- threat_analyzer.py
+  Core cyber threat intelligence engine.
+  Accepts a single indicator (domain/URL/phone/APK) and returns a structured JSON report with:
+  - VirusTotal results
+  - WHOIS data
+  - Domain metadata
+  - Hosting provider
+  - IP intelligence
+  - Website analysis
+  - PhoneInfoga results (for phone numbers)
+  - Risk assessment
+
+- investigation_mode.py
+  High-level controller providing two modes:
+  - Automation mode (screenshot investigation)
+  - Manual mode (single indicator investigation)
+
+7. How to Run - Common Workflows
+--------------------------------
+A) Automation Mode (Screenshot Investigation)
+
+  python investigation_mode.py auto <image_file>
+
+Examples:
+  python investigation_mode.py auto fraud_chat.png
+  python investigation_mode.py auto test.jpg
+
+This will:
+- Run OCR on the image
+- Extract indicators (phones, URLs, domains, APK names)
+- Analyze each with threat_analyzer.py
+- Print a single combined JSON investigation report to stdout
+
+B) Manual Investigation Mode
+
+  python investigation_mode.py manual <indicator>
+
+Examples:
+  python investigation_mode.py manual cardupgrade.cc
+  python investigation_mode.py manual https://fraud-site.com
+  python investigation_mode.py manual +919876543210
+  python investigation_mode.py manual malware.apk
+
+This will:
+- Validate the indicator type (domain/URL/phone/APK)
+- Run threat_analyzer.py for that indicator
+- Print a JSON report containing the full analysis
+
+C) Direct Threat Analyzer Usage
+
+You can also call the analyzer directly if needed:
+
+  python threat_analyzer.py cardupgrade.cc
+  python threat_analyzer.py https://example.com
+  python threat_analyzer.py +919876543210
+  python threat_analyzer.py malware.apk
+
+8. Notes & Best Practices
+-------------------------
+- Always run commands from inside the project folder (where this file lives).
+- Keep your VirusTotal API key private; do not commit it to Git.
+- Logs are written to stderr; JSON results are printed to stdout. When integrating with other tools or AI agents,
+  capture stdout as the machine-readable output.
+- For best OCR accuracy, ensure screenshots are clear and text is readable.
+
+9. Troubleshooting
+------------------
+- If you see import errors (e.g., easyocr, cv2, validators, whois):
+  Re-run the dependency installation step inside your virtual environment.
+
+- If PhoneInfoga errors appear:
+  - Confirm the binary exists and is executable.
+  - Either place it next to the scripts or set PHONEINFOGA_PATH to its full path.
+
+- If VirusTotal calls fail:
+  - Check that VT_API_KEY is set and valid.
+  - Verify your network connectivity and that the API key has not exceeded rate limits.
+
+If issues persist, open an issue on the GitHub repository with the error message and command you used.
