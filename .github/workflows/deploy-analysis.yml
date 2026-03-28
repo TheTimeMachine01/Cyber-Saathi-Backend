@@ -12,7 +12,7 @@ on:
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
-    # Added outputs if needed, but for now we'll just use the successful completion
+    environment: production
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -64,5 +64,8 @@ jobs:
     needs: test-and-build
     steps:
       - name: Trigger Render Deployment
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+yment
         run: |
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
