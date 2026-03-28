@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PhoneInfoga (Linux binary) directly into /usr/local/bin
-RUN curl -sSL https://raw.githubusercontent.com/sundowndev/phoneinfoga/master/install.sh | bash \
+RUN curl -sSL https://raw.githubusercontent.com/sundowndev/phoneinfoga/master/support/scripts/install | bash \
     && mv ./phoneinfoga /usr/local/bin/phoneinfoga \
     && chmod +x /usr/local/bin/phoneinfoga
 
